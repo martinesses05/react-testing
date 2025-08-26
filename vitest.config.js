@@ -9,8 +9,15 @@ export default defineConfig({
     css: true,
     coverage: {
       provider: "v8",
-      reporter: ["text", "lcov", "html"], // lcov/html para artefactos y Sonar/Coveralls si luego querés
+      reporter: ["text", "lcov", "html"],
       reportsDirectory: "./coverage",
+      thresholds: {
+        // <- exige mínimos
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80,
+      },
     },
   },
 });
