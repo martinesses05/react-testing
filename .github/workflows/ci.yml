@@ -27,22 +27,30 @@ jobs:
           cache: npm
           registry-url: "https://registry.npmjs.org"
 
-      - name: Ensure npm registry & faster installs
+      # 🔧 Limpia cualquier config previa de npm y fuerza el registry público
+      - name: Reset npm config
         run: |
-          npm config set registry "https://registry.npmjs.org/"
-          npm config set fund false
-          npm config set audit false
-          npm config set fetch-retries 5
-          npm config set fetch-retry-factor 2
-          npm config set fetch-retry-maxtimeout 60000
+          npm config delete registry || true
+          npm config delete @*registry || true
+          npm config delete always-auth || true
+          rm -f ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          npm cache clean --force
 
+      # 🛡️ Instalación con reintento por si el registry tiene hipo momentáneo
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
-          else
-            npm i --no-audit --no-fund
-          fi
+          set -e
+          ATTEMPTS=3
+          for i in $(seq 1 $ATTEMPTS); do
+            if [ -f package-lock.json ]; then
+              npm ci --no-audit --no-fund && break || true
+            else
+              npm i --no-audit --no-fund && break || true
+            fi
+            echo "Install attempt $i/$ATTEMPTS failed. Retrying in 5s..."
+            sleep 5
+          done
 
       - name: Lint
         run: npm run lint

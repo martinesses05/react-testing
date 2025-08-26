@@ -22,6 +22,9 @@
       "prettier -w"
     ]
   },
+  "overrides": {
+    "yocto-queue": "^1.0.0"
+  },
   "dependencies": {
     "prop-types": "^15.8.1",
     "react": "^19.1.1",
