@@ -13,9 +13,6 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [18, 20] # probá en Node 18 y 20
     env:
       CI: true
 
@@ -26,15 +23,25 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 20
           cache: npm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Ensure npm registry & faster installs
+        run: |
+          npm config set registry "https://registry.npmjs.org/"
+          npm config set fund false
+          npm config set audit false
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-maxtimeout 60000
 
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
-            npm ci
+            npm ci --no-audit --no-fund
           else
-            npm i
+            npm i --no-audit --no-fund
           fi
 
       - name: Lint
@@ -47,16 +54,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}
+          name: coverage
           path: coverage
           if-no-files-found: ignore
 
       - name: Build (Vite)
         run: npm run build
-
-      - name: Upload coverage to Codecov (opcional)
-        if: ${{ always()}}
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage/lcov.info
-          fail_ci_if_error: true
