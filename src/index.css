@@ -1,0 +1,28 @@
+/* src/styles/cart-widget.css */
+.cart-widget {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.cart-widget__icon {
+  font-size: 1.25rem; /* ajustá al tamaño de tu navbar */
+  line-height: 1;
+}
+
+.cart-widget__badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  background: #dc3545; /* rojo Bootstrap danger */
+  color: #fff;
+  font-weight: 600;
+}
