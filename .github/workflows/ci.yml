@@ -20,37 +20,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node (20.x)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          registry-url: "https://registry.npmjs.org"
+          node-version: "20.x"
+          cache: "npm"
 
-      # 🔧 Limpia cualquier config previa de npm y fuerza el registry público
-      - name: Reset npm config
+      - name: Configure npm registry
         run: |
-          npm config delete registry || true
-          npm config delete @*registry || true
-          npm config delete always-auth || true
-          rm -f ~/.npmrc
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          npm cache clean --force
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+          npm config set registry "https://registry.npmjs.org/"
+          npm config set always-auth false
+          npm config set fund false
+          npm config set audit false
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-maxtimeout 60000
+          npm ping
 
-      # 🛡️ Instalación con reintento por si el registry tiene hipo momentáneo
       - name: Install dependencies
         run: |
-          set -e
-          ATTEMPTS=3
-          for i in $(seq 1 $ATTEMPTS); do
-            if [ -f package-lock.json ]; then
-              npm ci --no-audit --no-fund && break || true
-            else
-              npm i --no-audit --no-fund && break || true
-            fi
-            echo "Install attempt $i/$ATTEMPTS failed. Retrying in 5s..."
-            sleep 5
-          done
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm i --no-audit --no-fund
+          fi
 
       - name: Lint
         run: npm run lint
